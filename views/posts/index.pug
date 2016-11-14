@@ -1,4 +1,9 @@
 extends ../application.pug
 block content
-	.container
-		h1 Posts
+
+	each blog in blogs
+		.contaner
+			.card.card-block
+				.row
+					.col-xs-8.offset-xs-1
+						h3= blog.title

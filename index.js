@@ -2,7 +2,9 @@ const express = require('express'),
       pug = require('pug'),
       morgan = require('morgan'),
       bodyParser = require('body-parser'),
-      Sequelize = require('sequelize');
+      Sequelize = require('sequelize'),
+      db = require('./models');
+
 
 
 var app = express();
@@ -13,7 +15,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('dev'));
 
 app.get('/admin/posts', (req, res) => {
-   res.render('posts/index');
+   db.Blog.findAll().then((blogs)=> {
+   res.render('posts/index', {blogs: blogs});
+   });
 });
 
 app.get('/admin/posts/new', (req,res) => {
@@ -26,6 +30,8 @@ app.post('/posts', (req, res) => {
 });
 
 
-app.listen(3000, function(){
-   console.log('web server runs on port 3000');
+db.sequelize.sync().then(() => {
+  app.listen(3000, () => {
+    console.log('Web Server is running on port 3000');
+  });
 });
