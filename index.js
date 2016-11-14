@@ -12,11 +12,16 @@ app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('dev'));
 
-app.get('/', (req, res) => {
-   res.render('index');
+app.get('/admin/posts', (req, res) => {
+   res.render('posts/index');
 });
-app.get('/new', (req,res) => {
-   res.render('new');
+
+app.get('/admin/posts/new', (req,res) => {
+   res.render('posts/new');
+
+});
+app.post('/posts', (req, res) => {
+   res.redirect('/admin/posts');
 
 });
 
