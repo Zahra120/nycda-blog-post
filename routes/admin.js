@@ -6,8 +6,8 @@ var db = require('../models');
 
 
 router.get('/posts', (req, res) => {
-   db.Blog.findAll().then((blogs) => {
-      res.render('posts/index', { blogs: blogs });
+   db.BlogPost.findAll().then((posts) => {
+      res.render('posts/index', { posts: posts });
    });
 });
 
@@ -16,19 +16,19 @@ router.get('/posts/new', (req,res) => {
 });
 
 router.get('/posts/:id', (req, res) => {
-   db.Blog.findById(req.params.id).then((blog) => {
-      res.render('posts/show', { blog: blog });
+   db.BlogPost.findById(req.params.id).then((post) => {
+      res.render('posts/show', { post: post});
    });
 });
 
 router.post('/posts', (req, res) => {
-   db.Blog.create(req.body).then(() => {
+   db.BlogPost.create(req.body).then(() => {
       res.redirect('/posts');
    });
 });
 
 router.put('/posts/:id', (req, res) => {
-   db.Blog.update(req.body, {
+   db.BlogPost.update(req.body, {
       where: {
          id: req.params.id
       }
@@ -38,12 +38,12 @@ router.put('/posts/:id', (req, res) => {
 });
 
 router.get('/posts/edit/:id', (req, res) => {
-   db.Blog.findById(req.params.id).then((blog) => {
-      res.render('posts/edit', { blog: blog });
+   db.BlogPost.findById(req.params.id).then((post) => {
+      res.render('posts/edit', { post: post });
    });
 });
 router.delete('/posts/:id', (req, res) => {
-   db.Blog.destroy({
+   db.BlogPost.destroy({
       where: {
          id: req.params.id
       }

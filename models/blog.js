@@ -1,6 +1,6 @@
 'use strict';
 module.exports = function(sequelize, DataTypes) {
-  var Blog = sequelize.define('Blog', {
+  var BlogPost = sequelize.define('BlogPost', {
     title: DataTypes.STRING,
     slug: DataTypes.STRING,
     content: DataTypes.TEXT
@@ -11,5 +11,5 @@ module.exports = function(sequelize, DataTypes) {
       }
     }
   });
-  return Blog;
+  return BlogPost;
 };

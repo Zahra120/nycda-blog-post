@@ -15,6 +15,7 @@ app.set('view engine', 'pug');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('dev'));
+
 app.use(methodOverride(function(req, res){
   if (req.body && typeof req.body === 'object' && '_method' in req.body) {
     var method = req.body._method;
@@ -72,13 +73,13 @@ app.use('/admin', adminRouter);
 //    });
 // });
 app.get('/posts', (req, res) => {
-   db.Blog.findAll().then((blogs) => {
-      res.render('posts/index', { blogs: blogs });
+   db.BlogPost.findAll().then((posts) => {
+      res.render('posts/index', { posts: posts });
    });
 });
 app.get('/posts/:id', (req, res) => {
-   db.Blog.findById(req.params.id).then((blog) => {
-      res.render('posts/show', { blog: blog });
+   db.BlogPost.findById(req.params.id).then((post) => {
+      res.render('posts/show', { post: post });
    });
 });
 
