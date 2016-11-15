@@ -25,8 +25,9 @@ app.get('/admin/posts/new', (req,res) => {
 
 });
 app.post('/posts', (req, res) => {
+   db.Blog.create(req.body).then(() => {
    res.redirect('/admin/posts');
-
+   });
 });
 
 
