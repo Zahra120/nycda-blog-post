@@ -21,7 +21,12 @@ app.get('/admin/posts', (req, res) => {
 });
 
 app.get('/admin/posts/new', (req,res) => {
-   res.render('posts/new');
+   res.render('posts/new' );
+});
+app.get('/admin/posts/show/:id', (req, res) =>{
+   db.Blog.findById(req.params.id).then((blog) => {
+      res.render('posts/show',{blog: blog});
+});
 
 });
 app.post('/posts', (req, res) => {
