@@ -86,11 +86,9 @@ app.get('/:id', (req, res) => {
    });
 
 });
-app.post('/comments', (req,res) => {
+app.post('/comments/:id', (req,res) => {
    db.Comment.create(req.body).then((comment) => {
-      return comment.getPost().then((post) => {
-        res.redirect('/' + req.params.id);
-     });
+      res.redirect('/' + req.params.id);
    });
 });
 
