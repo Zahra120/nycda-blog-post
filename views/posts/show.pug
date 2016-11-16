@@ -1,9 +1,21 @@
 extends ../application.pug
 block content
-	.contaner
+
+	.container
 		.card.card-block
 			.row
 				.col-xs-8.offset-xs-1
 					h3= post.title
 					h2= post.slug
 					p= post.content
+					each comment in comments
+						p= comment.content
+
+			.card.card-block
+				h5 Add comment
+				form( action='/comments' method="POST")
+					input(type="hidden" name="postId" value= post.id)
+					.form-group
+						textarea(rows="5" class="form-control" name="content" )
+					.form-group
+						button( type="submit" class="btn btn-success") Add comment

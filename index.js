@@ -73,14 +73,24 @@ app.use('/admin', adminRouter);
 //       res.redirect('/admin/posts');
 //    });
 // });
-app.get('/posts', (req, res) => {
+app.get('/', (req, res) => {
    db.BlogPost.findAll().then((posts) => {
       res.render('posts/index', { posts: posts });
    });
 });
-app.get('/posts/:id', (req, res) => {
+app.get('/:id', (req, res) => {
    db.BlogPost.findById(req.params.id).then((post) => {
-      res.render('posts/show', { post: post });
+      return post.getComments().then((comments) => {
+         res.render('posts/show', { post: post , comments: comments });
+      });
+   });
+
+});
+app.post('/comments', (req,res) => {
+   db.Comment.create(req.body).then((comment) => {
+      return comment.getPost().then((post) => {
+        res.redirect('/' + req.params.id);
+     });
    });
 });
 

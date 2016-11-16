@@ -23,7 +23,7 @@ router.get('/posts/:id', (req, res) => {
 
 router.post('/posts', (req, res) => {
    db.BlogPost.create(req.body).then(() => {
-      res.redirect('/posts');
+      res.redirect('/');
    });
 });
 
@@ -33,7 +33,7 @@ router.put('/posts/:id', (req, res) => {
          id: req.params.id
       }
     }).then(() => {
-      res.redirect('/posts/' + req.params.id);
+      res.redirect('/' + req.params.id);
    });
 });
 
@@ -48,7 +48,7 @@ router.delete('/posts/:id', (req, res) => {
          id: req.params.id
       }
    }).then(() => {
-      res.redirect('/posts');
+      res.redirect('/');
    });
 });
 
