@@ -87,7 +87,11 @@ app.get('/:id', (req, res) => {
 
 });
 app.post('/comments/:id', (req,res) => {
-   db.Comment.create(req.body).then((comment) => {
+   var incomingComment = req.body;
+
+   incomingComment.BlogPostId = req.params.id;
+   console.log(incomingComment);
+   db.Comment.create(incomingComment).then((comment) => {
       res.redirect('/' + req.params.id);
    });
 });

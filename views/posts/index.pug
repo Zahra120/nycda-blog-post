@@ -6,7 +6,8 @@ block content
 			.card.card-block
 				.row
 					.col-xs-6.offset-xs-2
-						h3= post.title
+						a(href="/"+post.id)
+							h3= post.title
 						h2= post.slug
 						p= post.content
 					.col-xs-1.offset-xs-0
