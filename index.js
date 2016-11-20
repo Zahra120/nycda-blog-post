@@ -5,7 +5,8 @@ const express = require('express'),
       Sequelize = require('sequelize'),
       db = require('./models'),
       methodOverride = require('method-override'),
-      displayRoutes = require('express-routemap');
+      displayRoutes = require('express-routemap'),
+      session = require('express-session');
 
 
 
@@ -26,66 +27,22 @@ app.use(methodOverride(function(req, res){
 }));
 app.use('/admin', adminRouter);
 
-// app.get('/admin/posts', (req, res) => {
-//    db.Blog.findAll().then((blogs) => {
-//       res.render('posts/index', { blogs: blogs });
-//    });
-// });
-//
-// app.get('/admin/posts/new', (req,res) => {
-//    res.render('posts/new' );
-// });
-//
-// app.get('/admin/posts/:id', (req, res) => {
-//    db.Blog.findById(req.params.id).then((blog) => {
-//       res.render('posts/show', { blog: blog });
-//    });
-// });
+// app.set('trust proxy', 1) ;// trust first proxy
+
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
+}));
 
 
-// app.post('/posts', (req, res) => {
-//    db.Blog.create(req.body).then(() => {
-//       res.redirect('/admin/posts');
-//    });
-// });
-
-// app.put('/admin/posts/:id', (req, res) => {
-//    db.Blog.update(req.body, {
-//       where: {
-//          id: req.params.id
-//       }
-//     }).then(() => {
-//       res.redirect('/admin/posts/' + req.params.id);
-//    });
-// });
-//
-// app.get('/admin/posts/edit/:id', (req, res) => {
-//    db.Blog.findById(req.params.id).then((blog) => {
-//       res.render('posts/edit', { blog: blog });
-//    });
-// });
-// app.delete('/admin/posts/:id', (req, res) => {
-//    db.Blog.destroy({
-//       where: {
-//          id: req.params.id
-//       }
-//    }).then(() => {
-//       res.redirect('/admin/posts');
-//    });
-// });
 app.get('/', (req, res) => {
    db.BlogPost.findAll().then((posts) => {
       res.render('posts/index', { posts: posts });
    });
 });
-app.get('/:id', (req, res) => {
-   db.BlogPost.findById(req.params.id).then((post) => {
-      return post.getComments().then((comments) => {
-         res.render('posts/show', { post: post , comments: comments });
-      });
-   });
 
-});
 app.post('/comments/:id', (req,res) => {
    var incomingComment = req.body;
 
@@ -96,6 +53,58 @@ app.post('/comments/:id', (req,res) => {
    });
 });
 
+app.get('/register', (req, res) => {
+   res.render('users/new');
+});
+
+app.get('/login', (req, res) => {
+   res.render('users/login');
+
+});
+app.get('/logout', (req, res) => {
+   req.session.user = undefined;
+   res.redirect('/');
+
+});
+
+// app.get('/login', (req, res) => {
+//    db.User.findById(req.params.id).then((user) =>{
+//       res.render('/users/information.pug', {user: user});
+//    });
+//
+// });
+
+
+app.get('/:id', (req, res) => {
+   db.BlogPost.findById(req.params.id).then((post) => {
+      return post.getComments().then((comments) => {
+         res.render('posts/show', { post: post , comments: comments });
+      });
+   });
+});
+
+app.post('/users', (req, res) => {
+   db.User.create(req.body).then(() => {
+      res.redirect('/');
+   });
+});
+
+
+
+app.post('/login', (req, res) => {
+   db.User.findOne({
+      where:{
+         email: req.body.email
+      }
+   }).then(function(userInDb){
+      if( req.body.passward === userInDb.passward ) {
+         // req.session.user = userInDb;
+         res.redirect('/');
+      }else{
+         res.redirect('/register');
+   }
+   });
+});
 
 
 db.sequelize.sync().then(() => {
