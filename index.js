@@ -105,12 +105,15 @@ app.post('/login', (req, res) => {
          email: req.body.email
       }
    }).then((userInDb) => {
-         if (req.body.passward === userInDb.passward) {
+      bcrypt.compare(req.body.passward, userInDb.passward, (error, result) => {
+          if(result){
             req.session.user = userInDb;
             res.redirect('/');
-      } else {
-         res.redirect('/register');
-      }
+         } else {
+            res.redirect('/admin/login');
+         }
+
+      });
    }).catch((error) => {
       res.redirect('/register');
    });
