@@ -8,12 +8,12 @@ const express = require('express'),
       displayRoutes = require('express-routemap'),
       session = require('express-session');
 
-
-
 var app = express();
 var adminRouter = require('./routes/admin');
 
 app.set('view engine', 'pug');
+
+app.use(express.static('public'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('dev'));
@@ -54,17 +54,16 @@ app.post('/comments/:id', (req,res) => {
 });
 
 app.get('/register', (req, res) => {
-   res.render('users/new');
+   if (req.session.user) {
+      res.redirect('/admin/posts');
+   } else {
+      res.render('users/new');
+   }
 });
 
-app.get('/login', (req, res) => {
-   res.render('users/login');
-
-});
 app.get('/logout', (req, res) => {
    req.session.user = undefined;
    res.redirect('/');
-
 });
 
 // app.get('/login', (req, res) => {
@@ -73,7 +72,6 @@ app.get('/logout', (req, res) => {
 //    });
 //
 // });
-
 
 app.get('/:id', (req, res) => {
    db.BlogPost.findById(req.params.id).then((post) => {
@@ -89,20 +87,20 @@ app.post('/users', (req, res) => {
    });
 });
 
-
-
 app.post('/login', (req, res) => {
    db.User.findOne({
       where:{
          email: req.body.email
       }
-   }).then(function(userInDb){
-      if( req.body.passward === userInDb.passward ) {
-         // req.session.user = userInDb;
+   }).then((userInDb) => {
+      if (req.body.passward === userInDb.passward) {
+         req.session.user = userInDb;
          res.redirect('/');
-      }else{
+      } else {
          res.redirect('/register');
-   }
+      }
+   }).catch((error) => {
+      res.redirect('/register');
    });
 });
 
