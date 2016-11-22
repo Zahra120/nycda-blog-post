@@ -6,7 +6,10 @@ const express = require('express'),
       db = require('./models'),
       methodOverride = require('method-override'),
       displayRoutes = require('express-routemap'),
-      session = require('express-session');
+      session = require('express-session'),
+      bcrypt = require ('bcrypt'),
+      crypto = require('crypto'),
+      base64url = require('base64url');
 
 var app = express();
 var adminRouter = require('./routes/admin');
@@ -82,10 +85,19 @@ app.get('/:id', (req, res) => {
 });
 
 app.post('/users', (req, res) => {
-   db.User.create(req.body).then(() => {
-      res.redirect('/');
+   var user = req.body;
+   bcrypt.hash(user.passward, 10, (error, hash) => {
+      user.passward = hash;
+      db.User.create(user).then((user) => {
+         res.redirect('/');
+      }).catch(() => {
+         res.redirect('/register');
+      });
    });
+
 });
+
+
 
 app.post('/login', (req, res) => {
    db.User.findOne({
@@ -93,9 +105,9 @@ app.post('/login', (req, res) => {
          email: req.body.email
       }
    }).then((userInDb) => {
-      if (req.body.passward === userInDb.passward) {
-         req.session.user = userInDb;
-         res.redirect('/');
+         if (req.body.passward === userInDb.passward) {
+            req.session.user = userInDb;
+            res.redirect('/');
       } else {
          res.redirect('/register');
       }
