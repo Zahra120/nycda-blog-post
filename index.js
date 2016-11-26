@@ -9,10 +9,15 @@ const express = require('express'),
       session = require('express-session'),
       bcrypt = require ('bcrypt'),
       crypto = require('crypto'),
-      base64url = require('base64url');
+      base64url = require('base64url'),
+      nodemailer = require('nodemailer');
 
 var app = express();
 var adminRouter = require('./routes/admin');
+
+var transporter = nodemailer.createTransport(
+ 'smtps://nycdaamswdi%40gmail.com:'+
+ process.env.EMAIL_PASSWORD_Blog_App+'@smtp.gmail.com');
 
 app.set('view engine', 'pug');
 
@@ -28,17 +33,15 @@ app.use(methodOverride(function(req, res){
     return method;
   }
 }));
-app.use('/admin', adminRouter);
 
-// app.set('trust proxy', 1) ;// trust first proxy
+app.use('/admin', adminRouter);
 
 app.use(session({
   secret: 'keyboard cat',
-  resave: false,
+  resave: true,
   saveUninitialized: true,
   cookie: { secure: true }
 }));
-
 
 app.get('/', (req, res) => {
    db.BlogPost.findAll().then((posts) => {
@@ -48,7 +51,6 @@ app.get('/', (req, res) => {
 
 app.post('/comments/:id', (req,res) => {
    var incomingComment = req.body;
-
    incomingComment.BlogPostId = req.params.id;
    console.log(incomingComment);
    db.Comment.create(incomingComment).then((comment) => {
@@ -76,6 +78,60 @@ app.get('/logout', (req, res) => {
 //
 // });
 
+app.get('/forgot-password', (req, res) => {
+   res.render('users/forgot-password');
+});
+
+app.post('/forgot-password', (req, res) => {
+   //check if the email exists in the database
+   db.User.findOne({
+      where:{
+         email:req.body.email
+      }
+   }).then((user) => {
+      if (user) {
+         //send email to that email with unique link
+         var passwordResetToken = base64url(crypto.randomBytes(48));
+         transporter.sendMail({
+           to:user.email,
+           subject:"change password request",
+           text:
+           `hi, please go this link and change your password!
+               http://localhost:3000/change-password/${user.passwordResetToken}
+         `
+          }, (error, info) => {
+             if(error){ throw error; }
+             console.log('password reset email sent to: ');
+             console.log(info);
+         });
+         res.redirect('/change-password/:passwordResetToken');
+      } else {
+         res.redirect('/forgot-password');
+      }
+   }).catch((error) => {
+      console.log(error);
+   });
+});
+//    }).then((user) => {
+//       res.render('change-password');
+//    });
+//       res.render('/');
+// });
+
+app.get('/change-password/:passwordResetToken', (req, res) => {
+      //from unique identifier we will get the user
+      //it should be a column in user table, it only be generateted when
+      //we send email
+      //get the new password from req.body and change the password to new one
+      db.User.findOne({
+         where:{
+            passwordResetToken: req.params.passwordResetToken
+         }
+      }).then((user) => {
+         res.render('users/change-password');
+      });
+});
+
 app.get('/:id', (req, res) => {
    db.BlogPost.findById(req.params.id).then((post) => {
       return post.getComments().then((comments) => {
@@ -90,11 +146,11 @@ app.post('/users', (req, res) => {
       user.passward = hash;
       db.User.create(user).then((user) => {
          res.redirect('/');
-      }).catch(() => {
+      }).catch((error) => {
+         console.log(error);
          res.redirect('/register');
       });
    });
-
 });
 
 
@@ -112,10 +168,25 @@ app.post('/login', (req, res) => {
          } else {
             res.redirect('/admin/login');
          }
-
       });
    }).catch((error) => {
       res.redirect('/register');
+   });
+});
+
+app.post('/change-password/:passwordResetToken', (req,res) => {
+   db.User.findOne({
+      where: {
+         passwordResetToken: req.params.passwordResetToken
+      }
+   }).then((user) => {
+      user.passward = req.body.passward ;
+      user.save().then((user) => {
+         req.session.user = user;
+         res.redirect('/');
+      });
+   }).catch((error) => {
+      res.redirect('/change-password/' + req.params.passwordResetToken);
    });
 });
 
