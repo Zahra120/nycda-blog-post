@@ -82,41 +82,78 @@ app.get('/forgot-password', (req, res) => {
    res.render('users/forgot-password');
 });
 
-app.post('/forgot-password', (req, res) => {
-   //check if the email exists in the database
-   db.User.findOne({
-      where:{
-         email:req.body.email
-      }
-   }).then((user) => {
-      if (user) {
-         //send email to that email with unique link
-         var passwordResetToken = base64url(crypto.randomBytes(48));
-         transporter.sendMail({
-           to:user.email,
-           subject:"change password request",
-           text:
-           `hi, please go this link and change your password!
-               http://localhost:3000/change-password/${user.passwordResetToken}
-         `
-          }, (error, info) => {
-             if(error){ throw error; }
-             console.log('password reset email sent to: ');
-             console.log(info);
-         });
-         res.redirect('/change-password/:passwordResetToken');
-      } else {
-         res.redirect('/forgot-password');
-      }
-   }).catch((error) => {
-      console.log(error);
-   });
-});
+// app.post('/forgot-password', (req, res) => {
+//    //check if the email exists in the database
+//    db.User.findOne({
+//       where:{
+//          email:req.body.email
+//       }
 //    }).then((user) => {
-//       res.render('change-password');
+//       if (user) {
+//          //send email to that email with unique link
+//          var passwordResetToken = base64url(crypto.randomBytes(48));
+//          user.save().then(user() => {
+//             transporter.sendMail({
+//               to:user.email,
+//               subject:"change password request",
+//               text:
+//               `hi, please go this link and change your password!
+//                   http://localhost:3000/change-password/${user.passwordResetToken}
+//             `
+//              }, (error, info) => {
+//                 if(error){ throw error; }
+//                 console.log('password reset email sent to: ');
+//                 console.log(info);
+//             });
+//          }).
+//
+//          res.redirect('/change-password/:passwordResetToken');
+//       } else {
+//          res.redirect('/forgot-password');
+//       }
+//    }).catch((error) => {
+//       console.log(error);
 //    });
-//       res.render('/');
 // });
+// //    }).then((user) => {
+// //       res.render('change-password');
+// //    });
+// //       res.render('/');
+// // });
+
+app.post('/forgot-password', (req, res) => {
+  db.User.findOne({
+    where: {
+      email: req.body.email
+     }
+   }).then((user) => {
+     if (user) {
+      // 2 - send an email with a unique link
+      user.passwordResetToken = base64url(crypto.randomBytes(48));
+      user.save().then((user) => {
+        transporter.sendMail({
+          to: user.email,
+          subject: 'Blog application password change request',
+          text: `
+            Hi there,
+            You have requested to change your password. If you haven't requested it please ignore this email.
+           You can change your password below:
+
+           http://localhost:3000/change-password/${user.passwordResetToken}
+          `
+       }, (error, info) => {
+          if (error) { throw error; }
+          console.log('Password reset email sent:');
+          console.log(info);
+       });
+      });
+
+      res.redirect('/');
+     } else {
+      res.redirect('/forgot-password');
+     }
+   });
+ });
 
 app.get('/change-password/:passwordResetToken', (req, res) => {
       //from unique identifier we will get the user
@@ -128,7 +165,7 @@ app.get('/change-password/:passwordResetToken', (req, res) => {
             passwordResetToken: req.params.passwordResetToken
          }
       }).then((user) => {
-         res.render('users/change-password');
+         res.render('users/change-password', {user: user});
       });
 });
 
@@ -180,7 +217,7 @@ app.post('/change-password/:passwordResetToken', (req,res) => {
          passwordResetToken: req.params.passwordResetToken
       }
    }).then((user) => {
-      user.passward = req.body.passward ;
+      user.passwordDigest = req.body.passwordDigest ;
       user.save().then((user) => {
          req.session.user = user;
          res.redirect('/');

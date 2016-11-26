@@ -4,9 +4,9 @@ module.exports = function(sequelize, DataTypes) {
   var User = sequelize.define('User', {
     email: DataTypes.STRING,
     passward: {
-      type: DataTypes.VIRTUAL,
-      set: function(passward){
-         this.setDataValue('passwordDigest', bcrypt.hashSync(passward, 10));
+    type: DataTypes.VIRTUAL,
+    set: function(passward){
+      this.setDataValue('passwordDigest', bcrypt.hashSync(passward, 10));
       }
    },
 
