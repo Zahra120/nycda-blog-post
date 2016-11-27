@@ -3,7 +3,6 @@ const express = require('express'),
       morgan = require('morgan'),
       bodyParser = require('body-parser'),
       Sequelize = require('sequelize'),
-      db = require('./models'),
       methodOverride = require('method-override'),
       displayRoutes = require('express-routemap'),
       session = require('express-session'),
@@ -12,20 +11,19 @@ const express = require('express'),
       base64url = require('base64url'),
       nodemailer = require('nodemailer');
 
-var app = express();
-var adminRouter = require('./routes/admin');
+var app = express(),
+    db = require('./models'),
+    adminRouter = require('./routes/admin'),
+    transporter = nodemailer.createTransport(
+     'smtps://nycdaamswdi%40gmail.com:'+
+     process.env.EMAIL_PASSWORD_Blog_App+'@smtp.gmail.com');
 
-var transporter = nodemailer.createTransport(
- 'smtps://nycdaamswdi%40gmail.com:'+
- process.env.EMAIL_PASSWORD_Blog_App+'@smtp.gmail.com');
 
 app.set('view engine', 'pug');
 
 app.use(express.static('public'));
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('dev'));
-
 app.use(methodOverride(function(req, res){
   if (req.body && typeof req.body === 'object' && '_method' in req.body) {
     var method = req.body._method;
@@ -33,9 +31,7 @@ app.use(methodOverride(function(req, res){
     return method;
   }
 }));
-
 app.use('/admin', adminRouter);
-
 app.use(session({
   secret: 'keyboard cat',
   resave: true,
@@ -81,45 +77,6 @@ app.get('/logout', (req, res) => {
 app.get('/forgot-password', (req, res) => {
    res.render('users/forgot-password');
 });
-
-// app.post('/forgot-password', (req, res) => {
-//    //check if the email exists in the database
-//    db.User.findOne({
-//       where:{
-//          email:req.body.email
-//       }
-//    }).then((user) => {
-//       if (user) {
-//          //send email to that email with unique link
-//          var passwordResetToken = base64url(crypto.randomBytes(48));
-//          user.save().then(user() => {
-//             transporter.sendMail({
-//               to:user.email,
-//               subject:"change password request",
-//               text:
-//               `hi, please go this link and change your password!
-//                   http://localhost:3000/change-password/${user.passwordResetToken}
-//             `
-//              }, (error, info) => {
-//                 if(error){ throw error; }
-//                 console.log('password reset email sent to: ');
-//                 console.log(info);
-//             });
-//          }).
-//
-//          res.redirect('/change-password/:passwordResetToken');
-//       } else {
-//          res.redirect('/forgot-password');
-//       }
-//    }).catch((error) => {
-//       console.log(error);
-//    });
-// });
-// //    }).then((user) => {
-// //       res.render('change-password');
-// //    });
-// //       res.render('/');
-// // });
 
 app.post('/forgot-password', (req, res) => {
   db.User.findOne({
